@@ -139,13 +139,14 @@
       // check all constraint nodes.
       for ( var property in this.nodes ) {
         var isRequired = false;
+        var message = null;
         var constraint = this.get(property);
         var constraints = _isArray( constraint ) ? constraint : [constraint];
 
         for (var i = constraints.length - 1; i >= 0; i--) {
           if ( 'Required' === constraints[i].__class__ ) {
             isRequired = constraints[i].requiresValidation( group );
-
+            message = constraints[i].message;
             continue;
           }
         }
@@ -157,10 +158,12 @@
         try {
           if (! this.has( property, this.options.strict || isRequired ? object : undefined ) ) {
             // we trigger here a HaveProperty Assert violation to have uniform Violation object in the end
-            new Assert().HaveProperty( property ).validate( object );
+            new Assert(null, property + ' is required.').HaveProperty( property ).validate( object );
           }
 
           result = this._check( property, object[ property ], group );
+
+
 
           // check returned an array of Violations or an object mapping Violations
           if ( ( _isArray( result ) && result.length > 0 ) || ( !_isArray( result ) && !_isEmptyObject( result ) ) ) {
@@ -309,10 +312,11 @@
   * Assert
   */
 
-  var Assert = function ( group ) {
+  var Assert = function ( group, message ) {
     this.__class__ = 'Assert';
     this.__parentClass__ = this.__class__;
     this.groups = [];
+    this.message = message;
 
     if ( 'undefined' !== typeof group )
       this.addGroup( group );
